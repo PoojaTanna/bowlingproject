@@ -1,91 +1,98 @@
+"""
+test_game.py - Unit tests for BowlingGame class
+"""
+
 import pytest
 from game import BowlingGame
 
-# Helper to roll multiple times
-def roll_many(game, rolls, pins):
-    for _ in range(rolls):
+# -------------------------------
+# Helper Functions
+# -------------------------------
+def roll_multiple(game, times, pins):
+    """Roll the same number of pins multiple times."""
+    for _ in range(times):
         game.roll(pins)
 
-# Helper to roll a spare
 def roll_spare(game):
+    """Roll a spare (5 + 5)."""
     game.roll(5)
     game.roll(5)
 
-# Helper to roll a strike
 def roll_strike(game):
+    """Roll a strike (10)."""
     game.roll(10)
 
 # -------------------------------
-# TEST CASES
+# Test Cases
 # -------------------------------
 
 def test_all_gutters():
-    """All rolls are 0 pins."""
+    """All rolls knock down 0 pins."""
     game = BowlingGame()
-    roll_many(game, 20, 0)
+    roll_multiple(game, 20, 0)
     assert game.score() == 0
 
 def test_all_ones():
-    """All rolls are 1 pin."""
+    """All rolls knock down 1 pin."""
     game = BowlingGame()
-    roll_many(game, 20, 1)
+    roll_multiple(game, 20, 1)
     assert game.score() == 20
 
 def test_one_spare():
-    """Score a spare and a following roll."""
+    """Score a spare and the next roll counts as bonus."""
     game = BowlingGame()
-    roll_spare(game)   # 5+5
-    game.roll(3)       # bonus
-    roll_many(game, 17, 0)
+    roll_spare(game)
+    game.roll(3)
+    roll_multiple(game, 17, 0)
     assert game.score() == 16
 
 def test_one_strike():
-    """Score a strike and next two rolls as bonus."""
+    """Score a strike and the next two rolls count as bonus."""
     game = BowlingGame()
-    roll_strike(game)  # 10
+    roll_strike(game)
     game.roll(3)
     game.roll(4)
-    roll_many(game, 16, 0)
+    roll_multiple(game, 16, 0)
     assert game.score() == 24
 
 def test_perfect_game():
     """Perfect game: 12 strikes, 300 points."""
     game = BowlingGame()
-    roll_many(game, 12, 10)
+    roll_multiple(game, 12, 10)
     assert game.score() == 300
 
 def test_10th_frame_spare_bonus():
     """Spare in 10th frame allows one bonus roll."""
     game = BowlingGame()
-    roll_many(game, 18, 0)  # first 9 frames zeros
-    roll_spare(game)         # 10th frame spare
-    game.roll(7)             # bonus
+    roll_multiple(game, 18, 0)
+    roll_spare(game)
+    game.roll(7)
     assert game.score() == 17
 
 def test_10th_frame_strike_bonus():
     """Strike in 10th frame allows two bonus rolls."""
     game = BowlingGame()
-    roll_many(game, 18, 0)
-    roll_strike(game)        # 10th frame strike
+    roll_multiple(game, 18, 0)
+    roll_strike(game)
     game.roll(7)
     game.roll(2)
     assert game.score() == 19
 
-def test_no_roll_after_finished_game():
-    """Cannot roll after game is finished."""
+def test_no_roll_after_game_finished():
+    """Cannot roll after the game is completed."""
     game = BowlingGame()
-    roll_many(game, 12, 10)  # perfect game
+    roll_multiple(game, 12, 10)
     with pytest.raises(ValueError):
         game.roll(10)
 
 def test_invalid_roll_negative():
-    """Cannot roll negative pins."""
+    """Rolling negative pins raises ValueError."""
     game = BowlingGame()
     with pytest.raises(ValueError):
         game.roll(-1)
 
 def test_invalid_roll_too_many_pins():
-    """Cannot roll more than 10 pins."""
+    """Rolling more than 10 pins raises ValueError."""
     game = BowlingGame()
     with pytest.raises(ValueError):
         game.roll(11)
